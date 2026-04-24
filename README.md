@@ -174,10 +174,3 @@ POST /api/shortlist
 | Charts | Recharts |
 | Data Validation | Pydantic v2 |
 
-## 📝 Submission
-
-- ✅ Working prototype with local setup
-- ✅ Source code with README
-- ✅ Architecture diagram (above)
-- ✅ Scoring methodology documented
-- ✅ Sample inputs/outputs in API docs (`/docs`)
