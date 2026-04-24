@@ -9,7 +9,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    gemini_api_key: str
+    groq_api_key: str
     environment: str = "development"
     log_level: str = "INFO"
 

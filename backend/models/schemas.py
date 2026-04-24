@@ -1,6 +1,6 @@
 """Pydantic schemas for all API models."""
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Optional, Any
 from enum import Enum
 
 
@@ -69,17 +69,42 @@ class JobDescriptionInput(BaseModel):
 
 class ParsedJD(BaseModel):
     role_title: str
-    required_skills: list[str]
-    preferred_skills: list[str]
-    required_experience_years: int
-    experience_level: ExperienceLevel
-    responsibilities: list[str]
-    qualifications: list[str]
+    required_skills: list[str] = []
+    preferred_skills: list[str] = []
+    required_experience_years: int = 3
+    experience_level: ExperienceLevel = ExperienceLevel.mid
+    responsibilities: list[str] = []
+    qualifications: list[str] = []
     location_preference: Optional[str] = None
     remote_ok: bool = False
     salary_range_usd: Optional[str] = None
-    industry: str
-    key_requirements_summary: str
+    industry: str = "Technology"
+    key_requirements_summary: str = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_nulls(cls, values: Any) -> Any:
+        """Coerce None values from LLM to safe defaults before field validation."""
+        if not isinstance(values, dict):
+            return values
+        # Bool fields: None → False
+        if values.get("remote_ok") is None:
+            values["remote_ok"] = False
+        # List fields: None → []
+        for list_field in ("required_skills", "preferred_skills", "responsibilities", "qualifications"):
+            if values.get(list_field) is None:
+                values[list_field] = []
+        # Int fields: None → default
+        if values.get("required_experience_years") is None:
+            values["required_experience_years"] = 3
+        # String fields: None → default
+        if values.get("industry") is None:
+            values["industry"] = "Technology"
+        if values.get("key_requirements_summary") is None:
+            values["key_requirements_summary"] = ""
+        if values.get("role_title") is None:
+            values["role_title"] = "Unknown Role"
+        return values
 
 
 # ─── Outreach Models ──────────────────────────────────────────────────────────

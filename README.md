@@ -169,7 +169,7 @@ POST /api/shortlist
 |---|---|
 | Frontend | Next.js 14 (App Router), TypeScript, Vanilla CSS |
 | Backend | FastAPI, Python 3.11, Uvicorn |
-| AI | Google Gemini 1.5 Flash |
+| AI | Groq (Llama 3.3 70B) — 6,000 free req/day |
 | Matching | TF-IDF Vectorizer + Cosine Similarity (scikit-learn) |
 | Charts | Recharts |
 | Data Validation | Pydantic v2 |
