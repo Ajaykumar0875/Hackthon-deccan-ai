@@ -1,0 +1,18 @@
+AI-Powered Talent Scouting & Engagement Agent
+
+Recruiters spend hours sifting through profiles and chasing candidate interest. 
+Build an AI agent that takes a Job Description as input, discovers matching candidates, 
+engages them conversationally to assess genuine interest, and outputs a ranked shortlist 
+scored on two dimensions: Match Score and Interest Score.
+
+
+Your agent should handle JD parsing, candidate discovery and matching 
+(with explainability), conversational outreach (simulated), and a combined 
+ranked output the recruiter can act on immediately.
+
+
+Your submission must include:
+Working prototype — deployed URL or clear local setup instructions
+Source code in a public repo with a README
+Architecture diagram and description of your scoring/logic
+Sample inputs and outputs
