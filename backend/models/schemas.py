@@ -136,3 +136,38 @@ class ShortlistResponse(BaseModel):
     total_candidates_evaluated: int
     shortlisted_candidates: list[CandidateScore]
     processing_time_seconds: float
+
+
+# ─── User / Auth Models ───────────────────────────────────────────────────────
+
+class UserProfile(BaseModel):
+    name: str
+    email: str
+    role: str
+    created_at: str
+
+
+class UpdateProfileRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, description="Min 8 characters")
+    confirm_password: str
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "ChangePasswordRequest":
+        if self.new_password != self.confirm_password:
+            raise ValueError("New password and confirm password do not match")
+        return self
+
+
+# ─── Admin Statistics ─────────────────────────────────────────────────────────
+
+class AdminStats(BaseModel):
+    total_users: int
+    total_candidates: int
+    total_admins: int
+    candidates_by_role: dict[str, int]
+    latest_registrations: list[UserProfile]

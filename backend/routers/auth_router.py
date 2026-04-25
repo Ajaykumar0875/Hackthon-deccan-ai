@@ -1,7 +1,7 @@
-"""Auth router — handles login for admin and candidates via MongoDB users collection."""
+"""Auth router — login + register. All authentication is against MongoDB only."""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from config import get_settings
+from datetime import datetime
 
 router = APIRouter()
 
@@ -12,67 +12,69 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    role: str       # "admin" | "candidate"
+    role: str
     email: str
     name: str
     message: str
 
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+@router.post("/register", response_model=LoginResponse)
+async def register(request: RegisterRequest):
+    """Register a new candidate user — saved to MongoDB."""
+    email = request.email.strip().lower()
+    name  = request.name.strip()
+
+    if not name or not email or not request.password:
+        raise HTTPException(status_code=400, detail="Name, email and password are required")
+    if len(request.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+    from database.connection import get_db
+    from utils.password import hash_password
+
+    db       = get_db()
+    existing = await db["users"].find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=409, detail="An account with this email already exists")
+
+    await db["users"].insert_one({
+        "name":          name,
+        "email":         email,
+        "role":          "candidate",
+        "password_hash": hash_password(request.password),
+        "created_at":    datetime.utcnow().isoformat(),
+    })
+
+    return LoginResponse(role="candidate", email=email, name=name, message="Account created successfully")
+
+
 @router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
-    settings = get_settings()
+    """Authenticate user — MongoDB only, no .env fallback."""
     email = request.email.strip().lower()
 
-    # ── Look up user in MongoDB ───────────────────────────────────────────────
-    user = None
-    try:
-        from database.connection import get_db
-        db = get_db()
-        user = await db["users"].find_one(
-            {"email": {"$regex": f"^{email}$", "$options": "i"}}
-        )
-    except Exception:
-        user = None
+    from database.connection import get_db
+    from utils.password import verify_password
 
-    # ── Admin login ───────────────────────────────────────────────────────────
-    if user and user.get("role") == "admin":
-        if request.password != settings.admin_password:
-            raise HTTPException(status_code=401, detail="Invalid admin password")
-        return LoginResponse(
-            role="admin",
-            email=user["email"],
-            name=user.get("name", "Admin"),
-            message="Admin login successful",
-        )
+    db   = get_db()
+    user = await db["users"].find_one({"email": email})
 
-    # ── Fallback admin check (from .env, no DB needed) ────────────────────────
-    if (
-        email == settings.admin_email.lower().strip()
-        and request.password == settings.admin_password
-    ):
-        return LoginResponse(
-            role="admin",
-            email=request.email,
-            name="Ajay",
-            message="Admin login successful",
-        )
+    if not user:
+        raise HTTPException(status_code=401, detail="No account found with this email")
 
-    # ── Candidate login ───────────────────────────────────────────────────────
-    if user and user.get("role") == "candidate":
-        return LoginResponse(
-            role="candidate",
-            email=user["email"],
-            name=user.get("name", email.split("@")[0].capitalize()),
-            message="Login successful",
-        )
+    stored_hash = user.get("password_hash", "")
+    if not stored_hash or not verify_password(request.password, stored_hash):
+        raise HTTPException(status_code=401, detail="Incorrect password")
 
-    # ── Any other email/password → treat as guest candidate (placeholder) ─────
-    if request.email and request.password:
-        return LoginResponse(
-            role="candidate",
-            email=request.email,
-            name=request.email.split("@")[0].capitalize(),
-            message="Login successful",
-        )
-
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    return LoginResponse(
+        role=user["role"],
+        email=user["email"],
+        name=user.get("name", email.split("@")[0].capitalize()),
+        message="Login successful",
+    )

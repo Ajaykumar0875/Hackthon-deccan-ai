@@ -69,7 +69,7 @@ def _build_outreach_block(candidates_data: list[dict]) -> str:
             f"ID:{c['id']} | {c['name']} | {c['title']} | "
             f"{c['experience_years']}yrs exp | "
             f"Location: {c['location']} | Remote: {c['open_to_remote']} | "
-            f"Available: {c['availability']} | {c['summary'][:100]}"
+            f"Available: {c.get('availability', 'Immediate')} | {c['summary'][:100]}"
         )
     return "\n".join(lines)
 
