@@ -1,0 +1,11 @@
+/* Reset dark theme from globals.css for all user-facing pages */
+html {
+  background: #ffffff !important;
+}
+
+body {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-family: 'Poppins', sans-serif !important;
+  min-height: 100vh;
+}

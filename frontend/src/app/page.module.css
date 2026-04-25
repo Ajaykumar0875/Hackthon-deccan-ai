@@ -1,0 +1,317 @@
+.main {
+  min-height: 100vh;
+  padding-top: 70px;
+  position: relative;
+  z-index: 1;
+  background: #000000;
+  color: #e2e8f0;
+}
+
+/* ─── Hero ─────────────────────────────────────────────────── */
+.hero {
+  padding: 5rem 0 3rem;
+  text-align: center;
+}
+
+.heroContent {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.heroBadge {
+  font-size: 0.78rem !important;
+  padding: 0.45rem 1rem !important;
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.heroGradient {
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-flow 4s ease infinite;
+}
+
+.heroSubtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 580px;
+}
+
+.featurePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.pillDot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-blue);
+  border-radius: 50%;
+}
+
+/* ─── Input Section ──────────────────────────────────────────── */
+.inputSection { padding: 1rem 0 3rem; }
+
+.inputCard {
+  background: var(--gradient-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.sampleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sampleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.sampleButtons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.textareaWrapper { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.textareaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.textareaLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.charCount {
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color var(--transition-base);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.topNControl {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.topNLabel {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.topNButtons { display: flex; gap: 0.35rem; }
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: var(--radius-md);
+  color: #fb7185;
+  font-size: 0.85rem;
+}
+
+/* ─── Features ───────────────────────────────────────────────── */
+.featuresSection { padding: 2rem 0 4rem; }
+
+.featuresTitle {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+}
+
+.featureIcon {
+  width: 44px;
+  height: 44px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue-light);
+  margin-bottom: 0.5rem;
+}
+
+.featureTitle {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.featureDesc {
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+.footer {
+  padding: 2rem 0;
+  text-align: center;
+  border-top: 1px solid #374151;
+}
+
+.footer p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ─── Platform Features Section (feature4 style) ──────────────── */
+.featuresSectionHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.featuresBadgeBtn {
+  padding: 0 1rem;
+  height: 32px;
+  border: 1px solid #374151;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  cursor: default;
+  margin-bottom: 1.25rem;
+  font-family: inherit;
+}
+
+.featuresTitle {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 500;
+  color: #f3f4f6;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+
+.featuresSub {
+  font-size: 1rem;
+  color: #d1d5db;
+  max-width: 520px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.featureCard {
+  background: linear-gradient(to bottom, #020204, #191130);
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+}
+
+.featureIconWrap {
+  display: flex;
+  align-items: center;
+}
+
+.featureCardTitle {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #f3f4f6;
+  margin: 0;
+}
+
+.featureCardDesc {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #d1d5db;
+  margin: 0;
+}
+
+/* ─── Hero Badge Button (replacing badge pill) ────────────────── */
+.heroBadgeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 1rem;
+  border: 1px solid #374151;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: default;
+  font-family: inherit;
+}
+
+@media (max-width: 768px) {
+  .controls { flex-direction: column; align-items: flex-start; }
+  .featuresGrid { grid-template-columns: 1fr; }
+}

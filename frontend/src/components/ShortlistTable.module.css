@@ -1,0 +1,78 @@
+.wrapper { display: flex; flex-direction: column; gap: 1rem; }
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.metaItem { display: flex; flex-direction: column; gap: 0.2rem; }
+.metaLabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+.metaValue { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); font-family: "Space Grotesk", sans-serif; }
+
+.tableWrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table thead tr {
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table th {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.row {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: rgba(255,255,255,0.03); }
+
+.table td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+}
+
+.nameCell { display: flex; flex-direction: column; gap: 0.15rem; }
+.candidateName { font-weight: 600; color: var(--text-primary); }
+.candidateTitle { font-size: 0.75rem; color: var(--text-secondary); }
+
+.location { font-size: 0.78rem; color: var(--text-muted); }
+
+.scoreCell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.scoreCellValue { font-weight: 700; font-family: "Space Grotesk", sans-serif; font-size: 0.9rem; position: relative; z-index: 1; }
+.scoreCellBar { position: absolute; inset-y: 0; left: 0; height: 100%; transition: width 0.8s ease; }
+
+.combinedCell .scoreCell { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); }
+
+.skillsList { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+@media (max-width: 768px) {
+  .meta { grid-template-columns: repeat(2, 1fr); }
+}

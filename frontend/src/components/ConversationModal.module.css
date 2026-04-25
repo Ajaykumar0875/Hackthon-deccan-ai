@@ -1,0 +1,114 @@
+.headerInfo { flex: 1; }
+.modalTitle { font-size: 1.1rem; color: var(--text-primary); }
+.modalSubtitle { font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.headerRight { display: flex; align-items: center; gap: 0.75rem; }
+
+.interestScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid;
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.65rem;
+  min-width: 52px;
+}
+.interestNum { font-size: 1.1rem; font-weight: 800; font-family: "Space Grotesk", sans-serif; line-height: 1; }
+.interestText { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+
+.closeBtn { width: 36px; height: 36px; padding: 0; border-radius: 50%; }
+
+.interestBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+}
+.interestDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.interestSummary { font-size: 0.82rem; color: var(--text-secondary); flex: 1; line-height: 1.4; }
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.conversationContainer { margin-bottom: 1.5rem; }
+
+.chatContainer { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.noConvNote { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.chatBubbleWrap { display: flex; flex-direction: column; gap: 0.3rem; max-width: 85%; }
+
+.chatLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.avatarRecruiter {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white; font-size: 0.65rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.avatarCandidate {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: white; font-size: 0.65rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.chatText { font-size: 0.85rem; line-height: 1.5; color: var(--text-primary); }
+
+.scoreSummary { margin-bottom: 1.5rem; }
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.scoreItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scoreCircle {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 800; font-family: "Space Grotesk", sans-serif;
+  background: rgba(255,255,255,0.03);
+}
+
+.scoreLabel { font-size: 0.68rem; color: var(--text-muted); text-align: center; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.skillsSection { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+
+.emptyNote { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+.explanation { padding: 1rem; background: rgba(59,130,246,0.05); border-left: 3px solid rgba(59,130,246,0.4); border-radius: var(--radius-sm); }
+.explanationText { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
