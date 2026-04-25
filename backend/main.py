@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.api_router import router
+from routers.auth_router import router as auth_router
 from config import get_settings
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
@@ -24,6 +25,22 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     logger.info("🚀 AI Talent Scout API starting up...")
     logger.info(f"Environment: {settings.environment}")
+
+    # ── MongoDB connection check ──────────────────────────────────────────────
+    if settings.mongodb_uri:
+        try:
+            from database.connection import ping_db
+            ok = await ping_db()
+            if ok:
+                print("\n✅ MongoDB Connected Successfully — Database: talentscout\n")
+                logger.info("✅ MongoDB Atlas connection verified")
+            else:
+                print("\n❌ MongoDB connection FAILED — check your URI in .env\n")
+        except Exception as e:
+            print(f"\n❌ MongoDB error: {e}\n")
+    else:
+        print("\n⚠️  No MONGODB_URI set — running without database\n")
+
     yield
     logger.info("AI Talent Scout API shutting down...")
 
@@ -50,4 +67,5 @@ app.add_middleware(
 
 # ─── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(router)
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 

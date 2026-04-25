@@ -16,6 +16,15 @@ venv/
 env/
 .venv/
 ENV/
+dec_env/
+deccan_env/
+
+# Design reference files (not needed in repo)
+userpage_codes/
+signinpage.html
+userpage*.html
+userpage*.txt
+signinpage.txt
 
 # Environment secrets — NEVER commit real keys
 backend/.env
