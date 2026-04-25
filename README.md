@@ -17,7 +17,7 @@
 │                                                     │
 │  ┌──────────┐  ┌─────────────┐  ┌───────────────┐  │
 │  │ JD Parser│  │  Matcher    │  │ Outreach Agent│  │
-│  │ (Gemini) │  │ TF-IDF+LLM │  │   (Gemini)    │  │
+│  │  (Groq)  │  │ TF-IDF+LLM │  │    (Groq)     │  │
 │  └──────────┘  └─────────────┘  └───────────────┘  │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐    │
@@ -25,7 +25,7 @@
 │  └─────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────┘
                       │
-              Google Gemini 1.5 Flash
+              Groq — Llama 3.3 70B Versatile
 ```
 
 ## 📊 Scoring Logic
@@ -34,9 +34,9 @@
 |---|---|---|
 | Skill Match | 40% of Match | TF-IDF cosine similarity |
 | Experience Match | 20% of Match | Years vs requirement |
-| Role Fit | 40% of Match | Gemini LLM evaluation |
+| Role Fit | 40% of Match | Groq LLM evaluation |
 | **Match Score** | 60% of Combined | Weighted sum |
-| Interest Score | 40% of Combined | Gemini conversation sentiment |
+| Interest Score | 40% of Combined | Groq conversation sentiment |
 | **Combined Score** | Final Rank | 0.6×Match + 0.4×Interest |
 
 ---
@@ -46,7 +46,7 @@
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- [Google Gemini API Key](https://aistudio.google.com/app/apikey) (free)
+- [Groq API Key](https://console.groq.com) (free — 6,000 req/day)
 
 ### 1. Backend Setup
 
@@ -55,7 +55,7 @@ cd backend
 
 # Copy env and add your key
 copy .env.example .env
-# Edit .env → set GEMINI_API_KEY=your_key_here
+# Edit .env → set GROQ_API_KEY=your_key_here
 
 # Install dependencies
 pip install -r requirements.txt
@@ -93,7 +93,7 @@ DECCAN_AI_PROJECT/
 │   ├── requirements.txt
 │   ├── .env.example
 │   ├── agents/
-│   │   ├── jd_parser.py        # Gemini JD parsing
+│   │   ├── jd_parser.py        # Groq LLM JD parsing
 │   │   ├── candidate_matcher.py # TF-IDF + LLM matching
 │   │   └── outreach_agent.py   # Conversation simulation
 │   ├── data/
