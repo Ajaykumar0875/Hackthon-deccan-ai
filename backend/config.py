@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     admin_email: str = "admin@example.com"
     admin_password: str = "changeme"
-    mongodb_uri: str = ""        # MongoDB Atlas connection string
+    mongodb_uri: str = ""
+    sender_email: str = ""           # Gmail address to send from
+    sender_app_password: str = ""    # Gmail App Password (not your login password)
 
 
 @lru_cache()

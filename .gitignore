@@ -21,6 +21,7 @@ deccan_env/
 
 # Design reference files (not needed in repo)
 userpage_codes/
+adminHome/
 signinpage.html
 userpage*.html
 userpage*.txt

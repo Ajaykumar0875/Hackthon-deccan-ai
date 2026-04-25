@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.api_router import router
 from routers.auth_router import router as auth_router
+from routers.email_router import router as email_router
 from config import get_settings
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ settings = get_settings()
 # ─── Lifespan (replaces deprecated on_event) ───────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 AI Talent Scout API starting up...")
+    logger.info("KizunaHire API starting up...")
     logger.info(f"Environment: {settings.environment}")
 
     # ── MongoDB connection check ──────────────────────────────────────────────
@@ -42,12 +43,12 @@ async def lifespan(app: FastAPI):
         print("\n⚠️  No MONGODB_URI set — running without database\n")
 
     yield
-    logger.info("AI Talent Scout API shutting down...")
+    logger.info("KizunaHire API shutting down...")
 
 
 # ─── App Init ──────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="AI Talent Scout API",
+    title="KizunaHire API",
     description="AI-powered talent scouting and engagement agent",
     version="1.0.0",
     docs_url="/docs",
@@ -68,4 +69,5 @@ app.add_middleware(
 # ─── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(router)
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(email_router, prefix="/api/email", tags=["email"])
 

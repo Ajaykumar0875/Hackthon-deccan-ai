@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api", tags=["Talent Scout"])
 
 @router.get("/health")
 async def health_check():
-    return {"status": "ok", "service": "AI Talent Scout API"}
+    return {"status": "ok", "service": "KizunaHire API"}
 
 
 @router.get("/candidates")
