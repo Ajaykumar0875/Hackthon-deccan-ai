@@ -9,7 +9,7 @@ from config import get_settings
 
 logger = logging.getLogger(__name__)
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
 
 
 def _get_client() -> Groq:
@@ -170,7 +170,7 @@ async def run_outreach_for_shortlist(
     for cs in candidates:
         raw = outreach_map_raw.get(cs.candidate_id, {})
         interest = float(raw.get("interest_score", 55))
-        combined = round(cs.match_score * 0.60 + interest * 0.40, 1)
+        combined = round(cs.match_score * 0.30 + interest * 0.70, 1)  # interest is the decider
         summary = raw.get("summary", "")
 
         updated.append(cs.model_copy(update={

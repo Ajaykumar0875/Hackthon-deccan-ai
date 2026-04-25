@@ -1,22 +1,45 @@
 """Embedding utilities for semantic skill similarity using TF-IDF + cosine similarity."""
+import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Words that act as glue in compound skill names — not skills themselves
+_NOISE = {"with", "or", "and", "for", "the", "a", "an", "in", "on", "at", "to", "of", "using"}
+
+
+def _expand_skills(skills: list[str]) -> set[str]:
+    """
+    Expand compound skill strings into individual tokens.
+    "Node.Js With Express Or Fastify" → {"node.js with express or fastify", "node.js", "express", "fastify"}
+    "React Or Next.Js"               → {"react or next.js", "react", "next.js"}
+    """
+    expanded: set[str] = set()
+    for skill in skills:
+        clean = skill.strip()
+        expanded.add(clean.lower())
+        # Split on " with ", " or ", " and ", "/", ","
+        parts = re.split(r"\s+(?:with|or|and|using)\s+|[/,]", clean, flags=re.IGNORECASE)
+        for part in parts:
+            part = part.strip().lower()
+            if part and part not in _NOISE and len(part) > 1:
+                expanded.add(part)
+    return expanded
 
 
 def compute_skill_overlap(candidate_skills: list[str], required_skills: list[str], preferred_skills: list[str]) -> dict:
     """
     Compute multi-level skill match:
-    - Exact matches (normalized)
+    - Exact matches (normalized, with compound skill expansion)
     - Semantic similarity via TF-IDF cosine
     Returns: dict with matched, missing, preferred_matched, and score
     """
-    candidate_set = {s.lower().strip() for s in candidate_skills}
-    required_set = {s.lower().strip() for s in required_skills}
-    preferred_set = {s.lower().strip() for s in preferred_skills}
+    candidate_set  = _expand_skills(candidate_skills)
+    required_set   = {s.lower().strip() for s in required_skills}
+    preferred_set  = {s.lower().strip() for s in preferred_skills}
 
-    # Exact matches
-    exact_required = candidate_set & required_set
+    # Exact matches (compound-expanded candidate vs JD skills)
+    exact_required  = candidate_set & required_set
     exact_preferred = candidate_set & preferred_set
     missing_required = required_set - candidate_set
 
@@ -31,10 +54,9 @@ def compute_skill_overlap(candidate_skills: list[str], required_skills: list[str
                 candidate_vectors = matrix[: len(candidate_set)]
                 missing_vectors = matrix[len(candidate_set) :]
                 sim_matrix = cosine_similarity(candidate_vectors, missing_vectors)
-                # For each missing skill, check if any candidate skill is > 0.5 similar
                 for j in range(sim_matrix.shape[1]):
                     if sim_matrix[:, j].max() > 0.5:
-                        semantic_bonus += 0.5  # partial credit
+                        semantic_bonus += 0.5
         except Exception:
             pass
 
@@ -45,10 +67,10 @@ def compute_skill_overlap(candidate_skills: list[str], required_skills: list[str
     final_score = min(100.0, required_score + preferred_bonus)
 
     return {
-        "matched_skills": sorted([s.title() for s in exact_required]),
-        "missing_skills": sorted([s.title() for s in missing_required - {s.lower() for s in exact_required}]),
+        "matched_skills":    sorted([s.title() for s in exact_required]),
+        "missing_skills":    sorted([s.title() for s in missing_required - {s.lower() for s in exact_required}]),
         "preferred_matched": sorted([s.title() for s in exact_preferred]),
-        "score": round(final_score, 1),
+        "score":             round(final_score, 1),
     }
 
 

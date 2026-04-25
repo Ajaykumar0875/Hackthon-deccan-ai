@@ -56,8 +56,37 @@ function getCombinedColor(score: number): string {
 }
 
 export default function CandidateCard({ candidate, rank }: Props) {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal]   = useState(false);
+  const [inviteSent, setInviteSent] = useState(false);
+  const [sending, setSending]       = useState(false);
   const interestMeta = getInterestLabel(candidate.interest_score);
+
+  const handleSendInvite = async () => {
+    if (inviteSent || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/email/send-invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidates: [{
+            name:        candidate.candidate_name,
+            email:       candidate.candidate_id,   // DB candidates use email as ID
+            role:        candidate.candidate_title,
+            match_score: candidate.match_score,
+          }],
+          interview_base_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/interview`,
+        }),
+      });
+      const data = await res.json();
+      if (data.sent?.length > 0) setInviteSent(true);
+      else alert("Failed to send invite. Check email config.");
+    } catch {
+      alert("Network error sending invite.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <>
@@ -97,16 +126,12 @@ export default function CandidateCard({ candidate, rank }: Props) {
           </div>
         </div>
 
-        {/* Interest Badge */}
-        <div className={styles.interestRow}>
-          <span className={`badge ${interestMeta.class}`}>{interestMeta.label}</span>
-          <span className={styles.conversationSummary}>{candidate.conversation_summary}</span>
-        </div>
+
 
         {/* Score Breakdown */}
         <div className={styles.scores}>
           <ScoreBar label="Match Score" value={candidate.match_score} colorClass="progress-blue" />
-          <ScoreBar label="Interest Score" value={candidate.interest_score} colorClass="progress-purple" />
+
           <div className={styles.subScores}>
             <div className={styles.subScore}>
               <span className={styles.subScoreLabel}>Skill Match</span>
@@ -142,14 +167,33 @@ export default function CandidateCard({ candidate, rank }: Props) {
         {/* Explanation */}
         <p className={styles.explanation}>{candidate.match_explanation}</p>
 
-        {/* CTA */}
-        <button
-          className={`btn btn-secondary btn-sm ${styles.viewBtn}`}
-          onClick={() => setShowModal(true)}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          View Conversation
-        </button>
+        {/* CTA buttons */}
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+
+
+          {/* Send Invite — only for real DB candidates (email as ID) with match > 40 */}
+          {candidate.match_score > 40 && candidate.candidate_id.includes("@") && (
+            <button
+              onClick={handleSendInvite}
+              disabled={inviteSent || sending}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"6px 14px", borderRadius:8, border:"1px solid",
+                borderColor: inviteSent ? "#16a34a" : "#16a34a",
+                background: inviteSent ? "#052010" : "#16a34a",
+                color: inviteSent ? "#4ade80" : "#fff",
+                fontWeight:600, fontSize:12, cursor: inviteSent ? "default" : "pointer",
+                opacity: sending ? 0.6 : 1, transition:"all 0.2s",
+              }}
+            >
+              {inviteSent ? (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg> Invite Sent</>
+              ) : sending ? "Sending…" : (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg> Send Invite</>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {showModal && (

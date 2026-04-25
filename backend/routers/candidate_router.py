@@ -117,7 +117,7 @@ async def parse_resume(body: ParseResumeRequest):
         settings = get_settings()
         client   = Groq(api_key=settings.groq_api_key)
 
-        prompt = f"""You are a resume parser. Extract the following fields from the resume text below.
+        prompt = f"""You are an expert resume parser. Extract the following fields from the resume text below.
 Return ONLY a valid JSON object with exactly these keys (use empty string or empty array if not found):
 
 {{
@@ -125,13 +125,20 @@ Return ONLY a valid JSON object with exactly these keys (use empty string or emp
   "phone": "Phone number",
   "location": "City, Country or just City",
   "linkedin": "LinkedIn URL if present, else empty string",
-  "summary": "A 2-3 sentence professional summary from the resume",
+  "summary": "A 2-3 sentence professional summary. IMPORTANT: If the resume has no explicit 'Summary' or 'Objective' section, generate a concise summary based on the candidate's work experience, projects, and skills instead. Never leave this empty.",
   "experience_level": "One of: Fresher, Junior (1-2 yrs), Mid (3-5 yrs), Senior (6-9 yrs), Lead (10+ yrs)",
-  "target_role": "Most recent or desired job title",
-  "skills": ["skill1", "skill2", ...],
+  "target_role": "Most recent job title, or desired role if fresher",
+  "skills": ["skill1", "skill2", "...all technical and soft skills found"],
   "preferred_roles": ["role1", "role2"],
-  "expected_salary": "If mentioned, else empty string"
+  "expected_salary": "If mentioned, else empty string",
+  "work_experience": ["company and role summary for each job, e.g. 'Software Engineer at XYZ (2022-2024)'"],
+  "projects": ["project name and one-line description for each notable project"]
 }}
+
+Instructions:
+- For 'summary': First look for a Summary/Objective/Profile section. If NONE exists, write 2-3 sentences describing the candidate based on their most recent role, key technologies used, and notable projects.
+- For 'skills': Include ALL technologies, frameworks, languages, tools mentioned anywhere in the resume (including inside project descriptions and work experience bullet points).
+- For 'experience_level': Calculate from total years of work experience. If student/fresher with only projects, use "Fresher".
 
 Resume text:
 {text[:6000]}
@@ -139,7 +146,7 @@ Resume text:
 Return only the JSON object, no markdown, no explanation."""
 
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=800,

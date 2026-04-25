@@ -365,10 +365,6 @@ export default function DashboardPage() {
                 <span className={styles.methodologyDesc}>Simulated conversation sentiment</span>
               </div>
             </div>
-            <p className={styles.methodologyFormula}>
-              <strong>Match Score</strong> = 0.4 × Skill + 0.2 × Experience + 0.4 × RoleFit &nbsp;|&nbsp;
-              <strong>Combined</strong> = 0.6 × Match + 0.4 × Interest
-            </p>
           </div>
         </div>
       </main>

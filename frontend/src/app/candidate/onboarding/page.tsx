@@ -150,7 +150,7 @@ export default function OnboardingPage() {
           Go to Home →
         </button>
         <p style={{color:"#3f3f46",fontSize:12,marginTop:16}}>
-          Questions? Email us at <span style={{color:"#16a34a"}}>support@kizunahire.ai</span>
+          Questions? Email us at <a href="mailto:ajay.grandhisila@gmail.com" style={{color:"#16a34a",textDecoration:"none"}}>ajay.grandhisila@gmail.com</a>
         </p>
       </div>
     </div>

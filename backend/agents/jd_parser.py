@@ -7,7 +7,7 @@ from config import get_settings
 
 logger = logging.getLogger(__name__)
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
 
 
 def _get_client() -> Groq:

@@ -10,7 +10,59 @@ from config import get_settings
 
 logger = logging.getLogger(__name__)
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
+
+# ── Experience level string → (years, level label) ────────────────────────────
+_EXP_MAP = {
+    "fresher":           (0,  "Junior"),
+    "junior (1-2 yrs)":  (1,  "Junior"),
+    "mid (3-5 yrs)":     (3,  "Mid"),
+    "senior (6-9 yrs)":  (6,  "Senior"),
+    "lead (10+ yrs)":    (10, "Lead"),
+}
+
+async def _get_candidates_from_db() -> list[dict]:
+    """Fetch candidate profiles from MongoDB and map to matcher format."""
+    try:
+        from database.connection import get_db
+        db   = get_db()
+        docs = await db["candidates"].find(
+            {}, {"_id": 0, "resume_base64": 0}
+        ).to_list(length=500)
+
+        if not docs:
+            return []
+
+        mapped = []
+        for i, d in enumerate(docs, 1):
+            exp_raw = (d.get("experience_level") or "junior (1-2 yrs)").lower().strip()
+            exp_years, exp_label = _EXP_MAP.get(exp_raw, (1, "Junior"))
+
+            title = (d.get("target_role") or
+                     (d.get("preferred_roles") or [""])[0] or "Professional")
+
+            mapped.append({
+                "id":                  d.get("email", f"DB{i:03d}"),
+                "name":                d.get("name", "Unknown"),
+                "title":               title,
+                "location":            d.get("location", "India"),
+                "experience_years":    exp_years,
+                "experience_level":    exp_label,
+                "skills":              d.get("skills", []),
+                "summary":             d.get("summary", ""),
+                "education":           "",
+                "previous_companies":  [],
+                "achievements":        [],
+                "expected_salary_inr": 0,
+                "open_to_remote":      True,
+                "email":               d.get("email", ""),
+            })
+        logger.info(f"Loaded {len(mapped)} candidates from MongoDB")
+        return mapped
+    except Exception as exc:
+        logger.warning(f"DB candidate fetch failed, using static data: {exc}")
+        return []
+
 
 
 def _get_client() -> Groq:
@@ -114,8 +166,15 @@ async def match_candidates(jd: ParsedJD, top_n: int = 5) -> list[CandidateScore]
     2. ONE batched Groq call for role fit of top 10
     3. Combine and return top_n
     """
-    candidates = get_all_candidates()
-    logger.info(f"Matching {len(candidates)} candidates for: {jd.role_title}")
+    # ── Fetch candidates: DB first, fall back to static file ─────────────────
+    db_candidates = await _get_candidates_from_db()
+    if len(db_candidates) >= 3:
+        candidates = db_candidates
+        logger.info(f"Using {len(candidates)} candidates from MongoDB")
+    else:
+        candidates = get_all_candidates()
+        logger.info(f"DB has <3 profiles — using {len(candidates)} static candidates")
+
 
     # Step 1: Fast local scoring — zero API calls
     scored = []
@@ -156,7 +215,8 @@ async def match_candidates(jd: ParsedJD, top_n: int = 5) -> list[CandidateScore]
             c["id"], {"role_fit_score": 55.0, "explanation": ""}
         )
         role_s = role_data["role_fit_score"]
-        match_score = round(skill_s * 0.40 + exp_s * 0.20 + role_s * 0.40, 1)
+        # Simplified: base 50 + skill (30%) + experience (20%) — everyone scores 50-100
+        match_score = round(min(100.0, 50.0 + skill_s * 0.30 + exp_s * 0.20), 1)
 
         final_scored.append({
             "candidate": c,
