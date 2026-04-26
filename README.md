@@ -898,7 +898,38 @@ POST /api/interview/analyze
 
 ---
 
-## 12. Future Work
+---
+
+## 12. Candidate Dashboard — AI Resume Builder Integration
+
+> 💡 *A small but thoughtful addition that completes the candidate experience.*
+
+The candidate dashboard (/user/dashboard) includes a built-in **AI Resume Builder** panel — giving candidates a direct path to building a professional resume right from the platform.
+
+### How It Works
+
+A **Create Resume** card sits at the bottom of the candidate sidebar. When clicked, it opens a wide two-column modal:
+
+| Panel | Contents |
+|-------|----------|
+| **Left** | Animated SVG illustration of a person building a resume at a desk — with dot-grid background, floating sparkles, and green glow effects |
+| **Right** | Title, 3 stat badges (500+ Resumes Built · 98% ATS Pass Rate · < 5 min Build Time), feature pills, green CTA button |
+
+### Integrated Tool
+
+The modal links directly to a live **AI Resume Builder** app:
+- **URL:** [ai-resume-builder-frontend-app.onrender.com](https://ai-resume-builder-frontend-app.onrender.com/)
+- **Features:** ATS-optimized formatting · AI bullet points · PDF export · keyword matching · multiple templates
+
+### Why It Was Added
+
+Candidates sign up and fill out their profile form *before* they know whether they'll be shortlisted. Having a polished, ATS-friendly resume ready at the time of application increases their chances significantly.
+
+By placing this tool inside the dashboard, KizunaHire gives every candidate the means to put their best foot forward — **before** the recruiter ever sees their profile. It is a small but intentional touch that strengthens the end-to-end candidate journey.
+
+---
+
+## 13. Future Work
 
 The following techniques and features were planned during development but could not be implemented within the hackathon time constraints. These represent the natural next evolution of the system.
 
