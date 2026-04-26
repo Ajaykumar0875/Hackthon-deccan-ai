@@ -32,6 +32,8 @@ export default function Navbar() {
   const handleLogout = () => {
     sessionStorage.removeItem("user_email");
     sessionStorage.removeItem("user_role");
+    sessionStorage.removeItem("user_name");
+    sessionStorage.removeItem("auth_token");
     window.location.href = "/user/home";
   };
 

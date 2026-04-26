@@ -48,6 +48,7 @@ export default function SignUpPage() {
       sessionStorage.setItem("user_email", data.email);
       sessionStorage.setItem("user_role",  data.role);
       sessionStorage.setItem("user_name",  data.name);
+      if (data.token) sessionStorage.setItem("auth_token", data.token);
       router.push("/candidate/onboarding");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed");

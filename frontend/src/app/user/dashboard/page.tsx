@@ -120,6 +120,8 @@ export default function UserDashboardPage() {
   const handleLogout = () => {
     sessionStorage.removeItem("user_email");
     sessionStorage.removeItem("user_role");
+    sessionStorage.removeItem("user_name");
+    sessionStorage.removeItem("auth_token");
     router.push("/signin");
   };
 

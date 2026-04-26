@@ -4,7 +4,8 @@ import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from utils.jwt_auth import require_admin
 from pydantic import BaseModel, EmailStr
 from config import get_settings
 
@@ -120,7 +121,7 @@ def send_gmail(to_email: str, to_name: str, subject: str, html_body: str, settin
 
 # ── API Endpoint ──────────────────────────────────────────────────────────────
 @router.post("/send-invites", response_model=SendInvitesResponse)
-async def send_interview_invites(request: SendInvitesRequest):
+async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(require_admin)):
     settings = get_settings()
 
     if not settings.sender_email or not settings.sender_app_password:

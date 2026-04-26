@@ -18,6 +18,7 @@ class LoginResponse(BaseModel):
     email: str
     name: str
     message: str
+    token: str = ""   # JWT access token
 
 
 class RegisterRequest(BaseModel):
@@ -53,7 +54,9 @@ async def register(request: RegisterRequest):
         "created_at":    datetime.utcnow().isoformat(),
     })
 
-    return LoginResponse(role="candidate", email=email, name=name, message="Account created successfully")
+    from utils.jwt_auth import create_access_token
+    token = create_access_token(email, "candidate")
+    return LoginResponse(role="candidate", email=email, name=name, message="Account created successfully", token=token)
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -74,11 +77,14 @@ async def login(request: LoginRequest):
     if not stored_hash or not verify_password(request.password, stored_hash):
         raise HTTPException(status_code=401, detail="Incorrect password")
 
+    from utils.jwt_auth import create_access_token
+    token = create_access_token(user["email"], user["role"])
     return LoginResponse(
         role=user["role"],
         email=user["email"],
         name=user.get("name", email.split("@")[0].capitalize()),
         message="Login successful",
+        token=token,
     )
 
 

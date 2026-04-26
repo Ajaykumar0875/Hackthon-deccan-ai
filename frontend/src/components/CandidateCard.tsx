@@ -65,9 +65,13 @@ export default function CandidateCard({ candidate, rank, offerCount = 0 }: Props
     if (inviteSent || sending) return;
     setSending(true);
     try {
+      const token = sessionStorage.getItem("auth_token") || "";
       const res = await fetch("http://localhost:8000/api/email/send-invites", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           candidates: [{
             name:        candidate.candidate_name,

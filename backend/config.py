@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     mongodb_uri: str = ""
     sender_email: str = ""           # Gmail address to send from
     sender_app_password: str = ""    # Gmail App Password (not your login password)
+    jwt_secret: str = "kizunahire-change-this-in-production-2026"
+    jwt_expire_hours: int = 24
+    frontend_url: str = ""   # e.g. https://kizunahire.vercel.app
 
 
 @lru_cache()

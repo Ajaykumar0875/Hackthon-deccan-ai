@@ -1,7 +1,8 @@
 """FastAPI routers for all endpoints."""
 import time
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from utils.jwt_auth import require_admin
 from models.schemas import JobDescriptionInput, ShortlistResponse, ParsedJD
 from agents.jd_parser import parse_jd
 from agents.candidate_matcher import match_candidates
@@ -31,7 +32,7 @@ async def get_sample_jds():
 
 
 @router.post("/shortlist", response_model=ShortlistResponse)
-async def generate_shortlist(body: JobDescriptionInput):
+async def generate_shortlist(body: JobDescriptionInput, _: dict = Depends(require_admin)):
     """
     Main endpoint — full pipeline:
     1. Parse JD

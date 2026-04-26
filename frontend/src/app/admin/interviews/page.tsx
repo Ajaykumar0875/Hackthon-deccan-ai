@@ -70,7 +70,11 @@ export default function AdminInterviewsPage() {
   const fetchResults = async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`${API}/api/interview/results`);
+      const token = sessionStorage.getItem("auth_token") || "";
+      const res   = await fetch(`${API}/api/interview/results`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.status === 401) { router.replace("/signin"); return; }
       const data = await res.json();
       setResults(data.results || []);
     } catch { setResults([]); }
@@ -80,9 +84,13 @@ export default function AdminInterviewsPage() {
   const makeDecision = async (email: string, decision: "approved" | "declined") => {
     setDeciding(email + decision);
     try {
+      const token = sessionStorage.getItem("auth_token") || "";
       await fetch(`${API}/api/interview/decision`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ candidate_email: email, decision }),
       });
       setResults(prev => prev.map(r => r.candidate_email === email ? { ...r, status: decision } : r));

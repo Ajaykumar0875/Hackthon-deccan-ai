@@ -1,6 +1,7 @@
 """Interview router — AI chatbot interview + analysis email to admin."""
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from utils.jwt_auth import require_admin, get_current_user
 from pydantic import BaseModel
 from typing import List, Optional
 from config import get_settings
@@ -293,7 +294,7 @@ async def analyze_interview(req: AnalyzeRequest):
 
 # ── GET all interview results (admin only) ────────────────────────────────────
 @router.get("/results")
-async def get_interview_results():
+async def get_interview_results(_: dict = Depends(require_admin)):
     """Return all completed interview results from DB, newest first."""
     try:
         from database.connection import get_db
@@ -374,7 +375,7 @@ def _build_congrats_email(name: str, role: str) -> str:
 
 
 @router.post("/decision")
-async def set_decision(req: DecisionRequest):
+async def set_decision(req: DecisionRequest, _: dict = Depends(require_admin)):
     """Admin approves or declines a candidate. On approval, sends a congratulations email."""
     if req.decision not in ("approved", "declined"):
         raise HTTPException(status_code=422, detail="Decision must be 'approved' or 'declined'")
@@ -433,7 +434,7 @@ async def set_decision(req: DecisionRequest):
 
 # ── Offer count batch lookup (for admin shortlist badges) ─────────────────────
 @router.get("/offer-counts")
-async def get_offer_counts(emails: str):
+async def get_offer_counts(emails: str, _: dict = Depends(require_admin)):
     """
     Given a comma-separated list of candidate emails,
     return how many APPROVED offers each email has.

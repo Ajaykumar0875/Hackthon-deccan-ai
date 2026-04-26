@@ -104,9 +104,16 @@ ADMIN_EMAIL=your_admin_email@gmail.com
 ADMIN_PASSWORD=your_admin_password
 SENDER_EMAIL=your_gmail@gmail.com
 SENDER_APP_PASSWORD=your_gmail_app_password
+JWT_SECRET=change-this-to-a-long-random-string-in-production
+JWT_EXPIRE_HOURS=24
+FRONTEND_URL=https://your-deployed-frontend.vercel.app
 ```
 
-> **Note:** `SENDER_APP_PASSWORD` is a Gmail App Password (16 characters), NOT your Gmail login password. Generate one at [Google App Passwords](https://myaccount.google.com/apppasswords).
+> **Notes:**
+> - `SENDER_APP_PASSWORD` is a Gmail App Password (16 characters), NOT your Gmail login password.
+> - `JWT_SECRET` signs all auth tokens — use a long random string in production, never commit the real value.
+> - `FRONTEND_URL` is required for CORS in production. Set it to your deployed frontend URL (e.g. Vercel).
+> - When `ENVIRONMENT=production`, the Swagger docs at `/docs` are automatically hidden.
 
 **Run the backend server:**
 ```bash
@@ -162,7 +169,7 @@ python seed_db.py
 |------|-----|-------------|
 | **Admin** | `http://localhost:3000/signin` | Use `ADMIN_EMAIL` + `ADMIN_PASSWORD` from your `.env` |
 | **Candidate** | `http://localhost:3000/signup` | Register a new account |
-| **API Docs** | `http://localhost:8000/docs` | No auth required |
+| **API Docs** | `http://localhost:8000/docs` | Only available when `ENVIRONMENT=development` |
 
 ---
 
@@ -175,14 +182,18 @@ hackthon-deccan-ai/
 │   ├── routers/         # FastAPI route handlers
 │   ├── models/          # Pydantic schemas
 │   ├── database/        # MongoDB connection
-│   ├── utils/           # Embeddings, password hashing
+│   ├── utils/
+│   │   ├── embeddings.py    # TF-IDF skill matching
+│   │   ├── password.py      # bcrypt hashing
+│   │   └── jwt_auth.py      # JWT token creation + FastAPI auth dependencies
 │   ├── main.py          # FastAPI app entry point
 │   ├── requirements.txt
-│   └── .env             # ← You create this
+│   └── .env             # ← You create this (never commit)
 └── frontend/
     ├── src/app/         # Next.js pages
     ├── src/components/  # Reusable UI components
-    └── .env.local       # ← You create this
+    ├── src/lib/api.ts   # Typed API client with JWT auth headers
+    └── .env.local       # ← You create this (never commit)
 ```
 
 ---
@@ -546,39 +557,89 @@ Other key redirects:
 
 ## 7. API Endpoints
 
-### Auth (`/api/auth`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/login` | Returns role + user info |
-| POST | `/register` | Creates candidate account |
-| POST | `/forgot-password` | Sends OTP reset email |
-| POST | `/reset-password` | Updates password |
+### Auth (`/api/auth`) — Public
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/login` | None | Returns role + user info + JWT token |
+| POST | `/register` | None | Creates candidate account + JWT token |
+| POST | `/forgot-password` | None | Sends OTP reset email |
+| POST | `/reset-password` | None | Updates password |
 
-### Candidate (`/api/candidate`)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/profile?email=` | Fetch profile |
-| POST | `/profile` | Create/update profile |
-| POST | `/parse-resume` | AI resume → JSON fields |
+### Candidate (`/api/candidate`) — Public
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/profile?email=` | None | Fetch profile |
+| POST | `/profile` | None | Create/update profile |
+| POST | `/parse-resume` | None | AI resume → JSON fields |
 
-### Shortlist (`/api/shortlist`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/` | Full JD → ranked candidates pipeline |
+### Shortlist (`/api/shortlist`) — 🔒 Admin Only
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/` | 🔒 Bearer token | Full JD → ranked candidates pipeline |
 
 ### Interview (`/api/interview`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/start` | Generate 10 interview questions |
-| POST | `/analyze` | Score answers, save, email admin |
-| GET | `/results` | All interview results (admin) |
-| POST | `/decision` | Approve or decline candidate |
-| GET | `/my-offers?email=` | Approved offers for candidate |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/start` | None | Generate 10 interview questions |
+| POST | `/analyze` | None | Score answers, save, email admin |
+| GET | `/results` | 🔒 Bearer token | All interview results (admin only) |
+| POST | `/decision` | 🔒 Bearer token | Approve or decline candidate (admin only) |
+| GET | `/my-offers?email=` | None | Approved offers for candidate |
+| GET | `/offer-counts?emails=` | 🔒 Bearer token | Batch offer badge lookup (admin only) |
 
-### Email (`/api/email`)
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/send-invite` | Send interview invite email |
+### Email (`/api/email`) — 🔒 Admin Only
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/send-invites` | 🔒 Bearer token | Send interview invite emails |
+
+---
+
+## 7.5 Security & Authentication
+
+KizunaHire uses **JWT (JSON Web Tokens)** with HS256 signing to protect all admin-only API endpoints.
+
+### How It Works
+
+```
+User signs in at /signin
+        │
+        ▼
+Backend verifies password (bcrypt) → generates signed JWT
+        │
+        ▼
+Frontend stores token in sessionStorage (key: auth_token)
+        │
+        ▼
+Every admin API call sends:  Authorization: Bearer <token>
+        │
+        ▼
+Backend verifies signature + expiry → allows or rejects
+```
+
+### Token Properties
+
+| Property | Value |
+|----------|-------|
+| Algorithm | HS256 (HMAC + SHA-256) |
+| Expiry | 24 hours (`JWT_EXPIRE_HOURS`) |
+| Storage | `sessionStorage` (cleared on tab close) |
+| Secret | `JWT_SECRET` env var (never committed to git) |
+
+### Protected Endpoints
+
+| Endpoint | Why Protected |
+|----------|---------------|
+| `POST /api/shortlist` | Triggers expensive Groq LLM pipeline |
+| `GET /api/interview/results` | Contains all candidate PII + scores |
+| `POST /api/interview/decision` | Approves/declines candidates, triggers emails |
+| `GET /api/interview/offer-counts` | Admin-only badge data |
+| `POST /api/email/send-invites` | Uses Gmail SMTP — prevents spam abuse |
+
+### Production Notes
+
+- Set `ENVIRONMENT=production` in `.env` → Swagger docs (`/docs`) are automatically hidden
+- Set `FRONTEND_URL=https://your-frontend.vercel.app` → CORS will allow your deployed frontend
+- If a token is expired or tampered, the backend returns `401` and the frontend redirects to `/signin`
 
 ---
 
@@ -931,7 +992,7 @@ By placing this tool inside the dashboard, KizunaHire gives every candidate the 
 
 ## 13. Future Work
 
-The following techniques and features were planned during development but could not be implemented within the hackathon time constraints. These represent the natural next evolution of the system.
+The following techniques and features were planned during development but could not be implemented within the hackathon time constraints. These represent ,the natural next evolution of the system.
 
 ---
 

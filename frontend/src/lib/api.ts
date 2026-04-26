@@ -4,6 +4,13 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// ── Auth header helper ─────────────────────────────────────────────────────────
+function authHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const token = sessionStorage.getItem("auth_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export interface ParsedJD {
   role_title: string;
   required_skills: string[];
@@ -52,12 +59,21 @@ export interface SampleJD {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),           // ← attach JWT on every call
+      ...(options?.headers as Record<string, string> | undefined),
+    },
     ...options,
   });
 
   if (!res.ok) {
     const errorBody = await res.text();
+    // Redirect to signin if token expired / invalid
+    if (res.status === 401 && typeof window !== "undefined") {
+      sessionStorage.clear();
+      window.location.href = "/signin";
+    }
     throw new Error(`API Error ${res.status}: ${errorBody}`);
   }
 

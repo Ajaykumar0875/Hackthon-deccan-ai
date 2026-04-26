@@ -50,20 +50,28 @@ async def lifespan(app: FastAPI):
 
 
 # ─── App Init ──────────────────────────────────────────────────────────────────
+_is_prod = settings.environment == "production"
 app = FastAPI(
     title="KizunaHire API",
     description="AI-powered talent scouting and engagement agent",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
     lifespan=lifespan,
 )
 
 # ─── CORS ──────────────────────────────────────────────────────────────────────
+_allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+]
+if settings.frontend_url:
+    _allowed_origins.append(settings.frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000",
-                   "http://localhost:3001", "http://localhost:3002"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

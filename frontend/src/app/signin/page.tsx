@@ -39,6 +39,7 @@ export default function SignInPage() {
       sessionStorage.setItem("user_email", data.email);
       sessionStorage.setItem("user_role",  data.role);
       sessionStorage.setItem("user_name",  data.name);
+      if (data.token) sessionStorage.setItem("auth_token", data.token);
       if (data.role === "admin") window.location.href = "/";
       else window.location.href = "/user/dashboard";
     } catch (err: unknown) {

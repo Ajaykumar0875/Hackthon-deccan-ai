@@ -157,8 +157,12 @@ export default function DashboardPage() {
             .filter(id => id.includes("@"))
             .join(",");
           if (emails) {
-            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-            const res = await fetch(`${API}/api/interview/offer-counts?emails=${encodeURIComponent(emails)}`);
+            const API   = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const token = sessionStorage.getItem("auth_token") || "";
+            const res = await fetch(
+              `${API}/api/interview/offer-counts?emails=${encodeURIComponent(emails)}`,
+              { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
             if (res.ok) setOfferCounts(await res.json());
           }
         } catch { /* non-critical */ }
