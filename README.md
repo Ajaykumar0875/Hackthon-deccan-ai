@@ -1,8 +1,11 @@
 # KizunaHire — AI-Powered Talent Scouting & Engagement Agent
 
+> **KizunaHire** is an AI system that connects the right talent with the right opportunity — based on both skill fit and genuine interest.
+
 > AI-powered recruitment pipeline: JD parsing → candidate matching → outreach simulation → AI interview → admin decision → candidate offer.
 
 ---
+
 
 ## 🚀 Local Setup Instructions
 
