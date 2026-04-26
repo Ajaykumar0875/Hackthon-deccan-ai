@@ -10,7 +10,7 @@ from data.candidates import SAMPLE_JDS, get_all_candidates
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", tags=["Talent Scout"])
+router = APIRouter(prefix="/api", tags=["KizunaHire"])
 
 
 @router.get("/health")
