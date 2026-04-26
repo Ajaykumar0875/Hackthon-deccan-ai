@@ -22,6 +22,7 @@ import styles from "./dashboard.module.css";
 
 type ViewMode = "cards" | "table";
 
+
 const STEPS = [
   { id: 1, label: "Parsing JD", icon: "📄", desc: "Extracting requirements..." },
   { id: 2, label: "Matching Candidates", icon: "🔍", desc: "Scoring 25 profiles..." },
@@ -134,6 +135,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
+  const [offerCounts, setOfferCounts] = useState<Record<string, number>>({});
 
   const runPipeline = useCallback(async (jdText: string, topN: number) => {
     try {
@@ -145,9 +147,21 @@ export default function DashboardPage() {
       const result = await api.generateShortlist(jdText, topN);
       clearInterval(stepInterval);
       setCurrentStep(5);
-      setTimeout(() => {
+      setTimeout(async () => {
         setData(result);
         setLoading(false);
+        // Fetch offer counts for all shortlisted candidates
+        try {
+          const emails = result.shortlisted_candidates
+            .map(c => c.candidate_id)
+            .filter(id => id.includes("@"))
+            .join(",");
+          if (emails) {
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const res = await fetch(`${API}/api/interview/offer-counts?emails=${encodeURIComponent(emails)}`);
+            if (res.ok) setOfferCounts(await res.json());
+          }
+        } catch { /* non-critical */ }
       }, 500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Pipeline failed. Please check backend connection.");
@@ -332,7 +346,7 @@ export default function DashboardPage() {
             {viewMode === "cards" ? (
               <div className={`grid-3`}>
                 {candidates.map((c: CandidateScore) => (
-                  <CandidateCard key={c.candidate_id} candidate={c} rank={c.rank} />
+                  <CandidateCard key={c.candidate_id} candidate={c} rank={c.rank} offerCount={offerCounts[c.candidate_id] ?? 0} />
                 ))}
               </div>
             ) : (

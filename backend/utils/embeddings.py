@@ -29,48 +29,60 @@ def _expand_skills(skills: list[str]) -> set[str]:
 
 def compute_skill_overlap(candidate_skills: list[str], required_skills: list[str], preferred_skills: list[str]) -> dict:
     """
-    Compute multi-level skill match:
-    - Exact matches (normalized, with compound skill expansion)
-    - Semantic similarity via TF-IDF cosine
-    Returns: dict with matched, missing, preferred_matched, and score
+    Compute multi-level skill match.
+    Each required skill (including compound ones like "React Or Next.Js") is
+    expanded into tokens and matched against the candidate's expanded skill set.
+    If ANY token from a requirement matches ANY candidate token → counted as matched.
     """
-    candidate_set  = _expand_skills(candidate_skills)
-    required_set   = {s.lower().strip() for s in required_skills}
-    preferred_set  = {s.lower().strip() for s in preferred_skills}
+    candidate_expanded = _expand_skills(candidate_skills)
 
-    # Exact matches (compound-expanded candidate vs JD skills)
-    exact_required  = candidate_set & required_set
-    exact_preferred = candidate_set & preferred_set
-    missing_required = required_set - candidate_set
+    matched_display:  list[str] = []
+    missing_display:  list[str] = []
 
-    # Semantic match for remaining skills using TF-IDF
-    semantic_bonus = 0.0
-    if missing_required and candidate_skills:
-        try:
-            vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
-            all_terms = list(candidate_set) + list(missing_required)
-            if len(all_terms) >= 2:
-                matrix = vectorizer.fit_transform(all_terms)
-                candidate_vectors = matrix[: len(candidate_set)]
-                missing_vectors = matrix[len(candidate_set) :]
-                sim_matrix = cosine_similarity(candidate_vectors, missing_vectors)
-                for j in range(sim_matrix.shape[1]):
-                    if sim_matrix[:, j].max() > 0.5:
-                        semantic_bonus += 0.5
-        except Exception:
-            pass
+    for req in required_skills:
+        req_tokens = _expand_skills([req])          # e.g. {"react or next.js","react","next.js"}
+        if req_tokens & candidate_expanded:          # any overlap → match
+            matched_display.append(req.title())
+        else:
+            # Semantic fallback via TF-IDF char n-gram similarity
+            matched_semantically = False
+            if candidate_skills:
+                try:
+                    from sklearn.feature_extraction.text import TfidfVectorizer
+                    from sklearn.metrics.pairwise import cosine_similarity as _cos
+                    req_tokens_list = [t for t in req_tokens if t not in _NOISE and len(t) > 1]
+                    cand_list       = list(candidate_expanded)
+                    if req_tokens_list and cand_list:
+                        vectorizer  = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
+                        all_terms   = cand_list + req_tokens_list
+                        matrix      = vectorizer.fit_transform(all_terms)
+                        cand_vecs   = matrix[: len(cand_list)]
+                        req_vecs    = matrix[len(cand_list):]
+                        sim         = _cos(cand_vecs, req_vecs)
+                        if sim.max() > 0.55:
+                            matched_semantically = True
+                except Exception:
+                    pass
 
-    # Score calculation
-    required_match_count = len(exact_required) + semantic_bonus
-    required_score = min(100.0, (required_match_count / max(len(required_set), 1)) * 100)
-    preferred_bonus = min(10.0, len(exact_preferred) * 3.0)
-    final_score = min(100.0, required_score + preferred_bonus)
+            if matched_semantically:
+                matched_display.append(req.title())
+            else:
+                missing_display.append(req.title())
+
+    # Preferred skills
+    preferred_expanded = _expand_skills(preferred_skills)
+    preferred_matched  = [s.title() for s in (candidate_expanded & preferred_expanded)]
+
+    total    = max(len(required_skills), 1)
+    matched  = len(matched_display)
+    pref_bon = min(10.0, len(preferred_matched) * 3.0)
+    score    = min(100.0, (matched / total) * 100 + pref_bon)
 
     return {
-        "matched_skills":    sorted([s.title() for s in exact_required]),
-        "missing_skills":    sorted([s.title() for s in missing_required - {s.lower() for s in exact_required}]),
-        "preferred_matched": sorted([s.title() for s in exact_preferred]),
-        "score":             round(final_score, 1),
+        "matched_skills":    sorted(matched_display),
+        "missing_skills":    sorted(missing_display),
+        "preferred_matched": sorted(preferred_matched),
+        "score":             round(score, 1),
     }
 
 

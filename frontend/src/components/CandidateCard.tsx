@@ -7,6 +7,7 @@ import ConversationModal from "./ConversationModal";
 interface Props {
   candidate: CandidateScore;
   rank: number;
+  offerCount?: number;
 }
 
 function ScoreBar({
@@ -55,11 +56,10 @@ function getCombinedColor(score: number): string {
   return "#f43f5e";
 }
 
-export default function CandidateCard({ candidate, rank }: Props) {
+export default function CandidateCard({ candidate, rank, offerCount = 0 }: Props) {
   const [showModal, setShowModal]   = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
   const [sending, setSending]       = useState(false);
-  const interestMeta = getInterestLabel(candidate.interest_score);
 
   const handleSendInvite = async () => {
     if (inviteSent || sending) return;
@@ -101,6 +101,16 @@ export default function CandidateCard({ candidate, rank }: Props) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               {candidate.candidate_location}
             </span>
+            {offerCount > 0 && (
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                marginTop: 6, padding: "2px 8px", borderRadius: 6,
+                background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.35)",
+                color: "#f59e0b", fontSize: 11, fontWeight: 700,
+              }}>
+                ✅ Offer Active · {offerCount}
+              </span>
+            )}
           </div>
           {/* Combined score ring */}
           <div className={styles.scoreRing}>
@@ -109,19 +119,19 @@ export default function CandidateCard({ candidate, rank }: Props) {
               <circle
                 cx="32" cy="32" r="28"
                 fill="none"
-                stroke={getCombinedColor(candidate.combined_score)}
+                stroke={getCombinedColor(candidate.match_score)}
                 strokeWidth="4"
-                strokeDasharray={`${(candidate.combined_score / 100) * 176} 176`}
+                strokeDasharray={`${(candidate.match_score / 100) * 176} 176`}
                 strokeLinecap="round"
                 transform="rotate(-90 32 32)"
-                style={{ filter: `drop-shadow(0 0 6px ${getCombinedColor(candidate.combined_score)})` }}
+                style={{ filter: `drop-shadow(0 0 6px ${getCombinedColor(candidate.match_score)})` }}
               />
             </svg>
             <div className={styles.scoreRingLabel}>
-              <span className={styles.scoreRingValue} style={{ color: getCombinedColor(candidate.combined_score) }}>
-                {candidate.combined_score.toFixed(0)}
+              <span className={styles.scoreRingValue} style={{ color: getCombinedColor(candidate.match_score) }}>
+                {candidate.match_score.toFixed(0)}
               </span>
-              <span className={styles.scoreRingText}>Combined</span>
+              <span className={styles.scoreRingText}>Match</span>
             </div>
           </div>
         </div>

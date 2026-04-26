@@ -58,6 +58,13 @@
   padding: 0;
 }
 
+/* ─── Global placeholder dimming ─────────────────────────────── */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+  opacity: 1;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -68,6 +75,8 @@ body {
   color: var(--text-primary) !important;
   line-height: 1.6;
   overflow-x: hidden;
+  overflow-y: scroll;           /* always reserve scrollbar space */
+  scrollbar-gutter: stable;     /* prevents layout shift when scrollbar appears */
   min-height: 100vh;
 }
 

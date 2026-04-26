@@ -215,8 +215,8 @@ async def match_candidates(jd: ParsedJD, top_n: int = 5) -> list[CandidateScore]
             c["id"], {"role_fit_score": 55.0, "explanation": ""}
         )
         role_s = role_data["role_fit_score"]
-        # Simplified: base 50 + skill (30%) + experience (20%) — everyone scores 50-100
-        match_score = round(min(100.0, 50.0 + skill_s * 0.30 + exp_s * 0.20), 1)
+        # True weighted score: Skill 50% + Experience 30% + AI Role Fit 20%
+        match_score = round(min(100.0, skill_s * 0.50 + exp_s * 0.30 + role_s * 0.20), 1)
 
         final_scored.append({
             "candidate": c,

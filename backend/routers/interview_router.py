@@ -126,7 +126,6 @@ Evaluate the candidate on:
 Return a JSON object:
 {{
   "interest_score": <integer 0-100, how interested/engaged they seemed>,
-  "technical_score": <integer 0-100>,
   "summary": "<3-4 sentences summarizing performance, strengths, and concerns>",
   "recommendation": "Strong Yes | Yes | Maybe | No",
   "key_strengths": ["strength1", "strength2"],
@@ -136,7 +135,7 @@ Return a JSON object:
 
 def _build_admin_email(name: str, role: str, email: str,
                        match_score: float, interest_score: float,
-                       technical_score: float, summary: str,
+                       summary: str,
                        recommendation: str, strengths: list, concerns: list) -> str:
     rec_color = {"Strong Yes": "#16a34a", "Yes": "#22c55e",
                  "Maybe": "#f59e0b", "No": "#ef4444"}.get(recommendation, "#6b7280")
@@ -175,7 +174,6 @@ def _build_admin_email(name: str, role: str, email: str,
     <div class="score-row">
       <div class="score-box"><div class="score-val">{match_score:.0f}</div><div class="score-lbl">Match Score</div></div>
       <div class="score-box"><div class="score-val">{interest_score:.0f}</div><div class="score-lbl">Interest Score</div></div>
-      <div class="score-box"><div class="score-val">{technical_score:.0f}</div><div class="score-lbl">Technical Score</div></div>
     </div>
     <div class="summary">{summary}</div>
     <h3>✅ Key Strengths</h3>
@@ -223,7 +221,6 @@ async def analyze_interview(req: AnalyzeRequest):
         data = json.loads(raw)
 
         interest_score  = float(data.get("interest_score", 60))
-        technical_score = float(data.get("technical_score", 60))
         summary         = data.get("summary", "")
         recommendation  = data.get("recommendation", "Maybe")
         strengths       = data.get("key_strengths", [])
@@ -239,7 +236,6 @@ async def analyze_interview(req: AnalyzeRequest):
                 "role":             req.role,
                 "match_score":      req.match_score,
                 "interest_score":   interest_score,
-                "technical_score":  technical_score,
                 "summary":          summary,
                 "recommendation":   recommendation,
                 "key_strengths":    strengths,
@@ -267,7 +263,7 @@ async def analyze_interview(req: AnalyzeRequest):
             admin_email = settings.admin_email
             html = _build_admin_email(
                 req.candidate_name, req.role, req.candidate_email,
-                req.match_score, interest_score, technical_score,
+                req.match_score, interest_score,
                 summary, recommendation, strengths, concerns
             )
             try:
@@ -308,6 +304,23 @@ async def get_interview_results():
         return {"results": docs, "total": len(docs)}
     except Exception as e:
         logger.error(f"Get results error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── GET approved offers for a specific candidate ──────────────────────────────
+@router.get("/my-offers")
+async def get_my_offers(email: str):
+    """Return all approved interview results for a specific candidate."""
+    try:
+        from database.connection import get_db
+        db   = get_db()
+        docs = await db["interviews"].find(
+            {"candidate_email": email, "status": "approved"},
+            {"_id": 0}
+        ).sort("completed_at", -1).to_list(length=100)
+        return {"offers": docs, "total": len(docs)}
+    except Exception as e:
+        logger.error(f"Get my-offers error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -416,3 +429,40 @@ async def set_decision(req: DecisionRequest):
     except Exception as e:
         logger.error(f"Decision error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Offer count batch lookup (for admin shortlist badges) ─────────────────────
+@router.get("/offer-counts")
+async def get_offer_counts(emails: str):
+    """
+    Given a comma-separated list of candidate emails,
+    return how many APPROVED offers each email has.
+    e.g. GET /api/interview/offer-counts?emails=a@x.com,b@x.com
+    Response: {"a@x.com": 2, "b@x.com": 0}
+    """
+    try:
+        from database.connection import get_db
+        db = get_db()
+
+        email_list = [e.strip() for e in emails.split(",") if e.strip()]
+        if not email_list:
+            return {}
+
+        cursor = db["interviews"].find(
+            {"candidate_email": {"$in": email_list}, "status": "approved"},
+            {"_id": 0, "candidate_email": 1}
+        )
+        docs = await cursor.to_list(length=1000)
+
+        # Count per email
+        counts: dict[str, int] = {e: 0 for e in email_list}
+        for doc in docs:
+            em = doc.get("candidate_email", "")
+            if em in counts:
+                counts[em] += 1
+
+        return counts
+
+    except Exception as e:
+        logger.error(f"offer-counts error: {e}")
+        return {}

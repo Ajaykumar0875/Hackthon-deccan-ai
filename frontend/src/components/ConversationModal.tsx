@@ -31,7 +31,6 @@ export default function ConversationModal({ candidate, onClose }: Props) {
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  const interestColor = getInterestColor(candidate.interest_score);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -49,12 +48,6 @@ export default function ConversationModal({ candidate, onClose }: Props) {
             <p className={styles.modalSubtitle}>{candidate.candidate_title}</p>
           </div>
           <div className={styles.headerRight}>
-            <div className={styles.interestScore} style={{ borderColor: interestColor }}>
-              <span className={styles.interestNum} style={{ color: interestColor }}>
-                {candidate.interest_score.toFixed(0)}
-              </span>
-              <span className={styles.interestText}>Interest</span>
-            </div>
             <button
               className={`btn btn-secondary btn-sm ${styles.closeBtn}`}
               onClick={onClose}
@@ -66,12 +59,7 @@ export default function ConversationModal({ candidate, onClose }: Props) {
         </div>
 
         <div className="modal-body">
-          {/* Interest Label */}
-          <div className={styles.interestBanner} style={{ background: `${interestColor}15`, borderColor: `${interestColor}30` }}>
-            <div className={styles.interestDot} style={{ background: interestColor, boxShadow: `0 0 8px ${interestColor}` }} />
-            <span style={{ color: interestColor, fontWeight: 600 }}>{getInterestLabel(candidate.interest_score)}</span>
-            <span className={styles.interestSummary}>{candidate.conversation_summary}</span>
-          </div>
+
 
           {/* Conversation — rendered from stored data in candidate */}
           <div className={styles.conversationContainer}>
@@ -133,11 +121,9 @@ export default function ConversationModal({ candidate, onClose }: Props) {
             <div className={styles.scoreGrid}>
               {[
                 { label: "Match Score", value: candidate.match_score, color: "#3b82f6" },
-                { label: "Interest Score", value: candidate.interest_score, color: interestColor },
                 { label: "Skill Match", value: candidate.skill_match_score, color: "#8b5cf6" },
                 { label: "Experience", value: candidate.experience_match_score, color: "#06b6d4" },
                 { label: "Role Fit", value: candidate.role_fit_score, color: "#10b981" },
-                { label: "Combined", value: candidate.combined_score, color: "#f59e0b" },
               ].map((item) => (
                 <div key={item.label} className={styles.scoreItem}>
                   <div className={styles.scoreCircle} style={{ borderColor: item.color }}>

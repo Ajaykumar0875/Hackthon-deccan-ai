@@ -28,7 +28,7 @@ Return a JSON object with EXACTLY these fields:
   "qualifications": ["list of qualifications"],
   "location_preference": "string or null",
   "remote_ok": boolean,
-  "salary_range_usd": "string like '$70K-$90K' or null",
+  "salary_range_usd": "salary range in INR LPA format. ALWAYS keep it within ₹5 LPA to ₹30 LPA. Example: '₹8-12 LPA' or '₹15-20 LPA'. Never exceed 30 LPA. If not mentioned, estimate based on role and experience level.",
   "industry": "string — the industry/domain",
   "key_requirements_summary": "2-3 sentence summary of what they really need"
 }}

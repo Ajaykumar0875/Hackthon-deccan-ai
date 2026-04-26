@@ -55,8 +55,6 @@ export default function ShortlistTable({ data }: Props) {
               <th>Candidate</th>
               <th>Location</th>
               <th>Match ↓</th>
-              <th>Interest</th>
-              <th>Combined</th>
               <th>Key Skills</th>
             </tr>
           </thead>
@@ -82,12 +80,6 @@ export default function ShortlistTable({ data }: Props) {
                   <span className={styles.location}>{c.candidate_location}</span>
                 </td>
                 <td><ScoreCell value={c.match_score} /></td>
-                <td><ScoreCell value={c.interest_score} /></td>
-                <td>
-                  <div className={styles.combinedCell}>
-                    <ScoreCell value={c.combined_score} />
-                  </div>
-                </td>
                 <td>
                   <div className={styles.skillsList}>
                     {c.matched_skills.slice(0, 3).map((s) => (

@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API = "http://localhost:8000";
 
@@ -25,7 +25,17 @@ const TAG = (on:boolean): React.CSSProperties => ({
 });
 
 export default function OnboardingPage() {
-  const router  = useRouter();
+  return (
+    <Suspense fallback={<div style={{minHeight:"100vh",background:"#000"}}/>}>
+      <OnboardingInner />
+    </Suspense>
+  );
+}
+
+function OnboardingInner() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const isFresh      = searchParams.get("fresh") === "true";
   const fileRef = useRef<HTMLInputElement>(null);
 
   /* state */
@@ -53,6 +63,19 @@ export default function OnboardingPage() {
   const [roles, setRoles]         = useState<string[]>([]);
   const [resumeName, setResumeName] = useState("");
   const [resumeB64, setResumeB64]   = useState("");
+
+  /* inject page styles once — avoids re-injection on every keystroke */
+  useEffect(() => {
+    const el = document.createElement("style");
+    el.id = "ob-styles";
+    el.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap');
+      input:focus,textarea:focus,select:focus{border-color:#16a34a!important;}
+      input::placeholder,textarea::placeholder{color:#52525b;}
+    `;
+    if (!document.getElementById("ob-styles")) document.head.appendChild(el);
+    return () => { document.getElementById("ob-styles")?.remove(); };
+  }, []);
 
   /* auth + profile check */
   useEffect(() => {
@@ -142,12 +165,12 @@ export default function OnboardingPage() {
         </p>
         {/* divider */}
         <div style={{borderTop:"1px solid #1a1a1a",margin:"0 0 28px"}}/>
-        <button onClick={()=>router.push("/user/home")} style={{
+        <button onClick={()=>router.push("/user/dashboard")} style={{
           width:"100%",padding:"14px 0",borderRadius:8,border:"none",cursor:"pointer",
           background:"#16a34a",color:"#fff",fontWeight:700,fontSize:16,fontFamily:"inherit",
           transition:"background 0.2s",
         }}>
-          Go to Home →
+          Go to Dashboard →
         </button>
         <p style={{color:"#3f3f46",fontSize:12,marginTop:16}}>
           Questions? Email us at <a href="mailto:ajay.grandhisila@gmail.com" style={{color:"#16a34a",textDecoration:"none"}}>ajay.grandhisila@gmail.com</a>
@@ -165,7 +188,7 @@ export default function OnboardingPage() {
   );
 
   /* ── Application Status Screen (already submitted) ─────────────────── */
-  if(hasProfile && !success) return (
+  if(hasProfile && !success && !isFresh) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#000",fontFamily:"'Geist',sans-serif",padding:24}}>
       <style dangerouslySetInnerHTML={{__html:`
         @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap');
@@ -242,7 +265,7 @@ export default function OnboardingPage() {
 
         {/* Actions */}
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          <button onClick={()=>router.push("/user/home")} style={{
+          <button onClick={()=>router.push("/user/dashboard")} style={{
             padding:"14px 0",borderRadius:8,border:"none",cursor:"pointer",
             background:"#16a34a",color:"#fff",fontWeight:700,fontSize:15,fontFamily:"inherit",
           }}>
@@ -261,12 +284,7 @@ export default function OnboardingPage() {
   );
 
   return (
-    <div style={{minHeight:"100vh",background:"#000",fontFamily:"'Geist',sans-serif",padding:"40px 24px"}}>
-      <style dangerouslySetInnerHTML={{__html:`
-        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap');
-        input:focus,textarea:focus,select:focus{border-color:#16a34a!important;}
-        input::placeholder,textarea::placeholder{color:#52525b;}
-      `}}/>
+    <div style={{minHeight:"100vh",background:"#000",fontFamily:"'Geist',sans-serif",padding:"40px 24px",width:"100%",boxSizing:"border-box" as const}}>
 
       <div style={{maxWidth:720,margin:"0 auto"}}>
         {/* Header */}
@@ -420,7 +438,7 @@ export default function OnboardingPage() {
             }}>
               {saving?"Saving…":hasProfile?"Update Profile →":"Save Profile & Continue →"}
             </button>
-            <button type="button" onClick={()=>router.push("/user/home")} style={{
+            <button type="button" onClick={()=>router.push("/user/dashboard")} style={{
               width:"100%",marginTop:10,padding:"12px 0",borderRadius:8,cursor:"pointer",
               background:"transparent",border:"1px solid #262626",color:"#52525b",fontSize:13,fontFamily:"inherit",
             }}>

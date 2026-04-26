@@ -21,7 +21,7 @@ export default function SignInPage() {
         color: #fff !important; -webkit-text-fill-color: #fff !important;
         font-size: 14px; flex: 1; font-family: inherit; width: 100%;
       }
-      .si-input::placeholder { color: #3f3f46 !important; }
+      .si-input::placeholder { color: rgba(255,255,255,0.25) !important; }
     `;
     document.head.appendChild(el);
     return () => { document.head.removeChild(el); };
@@ -39,8 +39,8 @@ export default function SignInPage() {
       sessionStorage.setItem("user_email", data.email);
       sessionStorage.setItem("user_role",  data.role);
       sessionStorage.setItem("user_name",  data.name);
-      if (data.role === "admin") router.push("/");
-      else router.push("/candidate/onboarding");
+      if (data.role === "admin") window.location.href = "/";
+      else window.location.href = "/user/dashboard";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally { setLoading(false); }

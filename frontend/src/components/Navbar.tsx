@@ -32,7 +32,7 @@ export default function Navbar() {
   const handleLogout = () => {
     sessionStorage.removeItem("user_email");
     sessionStorage.removeItem("user_role");
-    router.push("/signin");
+    window.location.href = "/user/home";
   };
 
   return (

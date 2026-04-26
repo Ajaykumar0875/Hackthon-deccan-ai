@@ -11,7 +11,7 @@ interface InterviewResult {
   role:             string;
   match_score:      number;
   interest_score:   number;
-  technical_score:  number;
+  interest_score:   number;
   summary:          string;
   recommendation:   string;
   key_strengths:    string[];
@@ -158,7 +158,6 @@ export default function AdminInterviewsPage() {
               <div style={S.scores}>
                 <ScorePill label="Match"    value={r.match_score}    color="#3b82f6" />
                 <ScorePill label="Interest" value={r.interest_score} color="#a855f7" />
-                <ScorePill label="Technical" value={r.technical_score} color="#f59e0b" />
               </div>
 
               {/* Expanded details */}

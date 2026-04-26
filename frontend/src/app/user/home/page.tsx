@@ -179,6 +179,7 @@ export default function UserHome() {
           {isLoggedIn ? (
             <>
               <span style={{ fontSize: 14, color: "#64748b" }}>Hi, {userName} 👋</span>
+              <Link href="/user/dashboard" style={{ ...s.btnGhost, color: darkMode ? "#4ade80" : "#6366f1", fontWeight: 600 }}>My Dashboard</Link>
               <Link href="/apply" style={s.btnPrimary}>Apply Now</Link>
               <button onClick={handleLogout} style={{ ...s.btnGhost, color: "#ef4444" }}>Logout</button>
             </>
@@ -210,7 +211,7 @@ export default function UserHome() {
           ) : (
             <>
               <Link href="/signin" style={s.btnPrimary}>Sign In to Apply</Link>
-              <Link href="/signin" style={{ ...s.btnGhost, display: "flex", alignItems: "center", gap: 6, color: "#6366f1", fontWeight: 600 }}>
+              <Link href="/signup" style={{ ...s.btnGhost, display: "flex", alignItems: "center", gap: 6, color: "#6366f1", fontWeight: 600 }}>
                 Create Account →
               </Link>
             </>
