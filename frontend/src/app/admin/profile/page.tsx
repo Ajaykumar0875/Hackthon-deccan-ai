@@ -1,4 +1,5 @@
 "use client";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -34,7 +35,7 @@ export default function AdminProfilePage() {
 
   const fetchProfile = async (e: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/user/profile?email=${encodeURIComponent(e)}`);
+      const res = await fetch(`${API_URL}/api/user/profile?email=${encodeURIComponent(e)}`);
       if (res.ok) {
         const d = await res.json();
         setName(d.name); setEditName(d.name);
@@ -47,7 +48,7 @@ export default function AdminProfilePage() {
   const handleSaveName = async () => {
     setSaving(true); setSaveMsg("");
     try {
-      const res = await fetch(`http://localhost:8000/api/user/profile?email=${encodeURIComponent(email)}`, {
+      const res = await fetch(`${API_URL}/api/user/profile?email=${encodeURIComponent(email)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editName }),
@@ -65,7 +66,7 @@ export default function AdminProfilePage() {
     if (newPwd.length < 8) { setPwdMsg({ text: "Password must be at least 8 characters.", ok: false }); return; }
     setPwdLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/user/change-password?email=${encodeURIComponent(email)}`, {
+      const res = await fetch(`${API_URL}/api/user/change-password?email=${encodeURIComponent(email)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ current_password: curPwd, new_password: newPwd, confirm_password: confPwd }),
