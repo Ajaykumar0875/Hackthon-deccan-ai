@@ -66,7 +66,7 @@ export default function CandidateCard({ candidate, rank, offerCount = 0 }: Props
     setSending(true);
     try {
       const token = sessionStorage.getItem("auth_token") || "";
-      const res = await fetch("http://localhost:8000/api/email/send-invites", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/email/send-invites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

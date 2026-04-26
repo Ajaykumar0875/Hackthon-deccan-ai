@@ -20,7 +20,7 @@ export default function AdminStatsPage() {
     const e = sessionStorage.getItem("user_email") || "";
     const r = sessionStorage.getItem("user_role")  || "";
     if (!e || r !== "admin") { router.replace("/user/home"); return; }
-    fetch("http://localhost:8000/api/user/admin/stats")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/user/admin/stats`)
       .then(r => r.json())
       .then(d => { setStats(d); setLoading(false); })
       .catch(() => setLoading(false));

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /* ── Style tokens ──────────────────────────────────────────────────────────── */
 const INP: React.CSSProperties = {

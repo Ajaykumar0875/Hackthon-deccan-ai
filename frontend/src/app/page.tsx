@@ -118,7 +118,7 @@ export default function HomePage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("http://localhost:8000/api/auth/parse-jd-file", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/parse-jd-file`, {
         method: "POST",
         body: formData,
       });
