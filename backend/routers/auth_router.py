@@ -149,8 +149,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
     from database.connection import get_db
     from config import get_settings
-    from routers.email_router import send_gmail
-    import smtplib
+    from routers.email_router import send_via_resend
 
     db   = get_db()
     user = await db["users"].find_one({"email": email})
@@ -168,14 +167,13 @@ async def forgot_password(request: ForgotPasswordRequest):
         upsert=True,
     )
 
-    # Send email
     settings = get_settings()
     name     = user.get("name", "there")
     html     = _otp_email_html(name, otp)
-    ok       = send_gmail(email, name, "🔐 Your KizunaHire Password Reset OTP", html, settings)
+    ok       = send_via_resend(email, "🔐 Your KizunaHire Password Reset OTP", html, settings.resend_api_key)
 
     if not ok:
-        raise HTTPException(status_code=500, detail="Failed to send OTP email. Check SMTP config.")
+        raise HTTPException(status_code=500, detail="Failed to send OTP email. Check RESEND_API_KEY config.")
 
     logger.info(f"OTP sent to {email}")
     return {"message": f"OTP sent to {email}. Valid for 10 minutes."}
