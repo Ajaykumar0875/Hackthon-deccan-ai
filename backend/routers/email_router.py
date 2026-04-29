@@ -1,8 +1,6 @@
-"""Email router — sends AI interview invitation emails to shortlisted candidates."""
-import smtplib
+"""Email router — sends AI interview invitation emails via Resend API."""
 import logging
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import httpx
 from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 from utils.jwt_auth import require_admin
@@ -11,6 +9,9 @@ from config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+RESEND_API_URL = "https://api.resend.com/emails"
+FROM_ADDRESS   = "KizunaHire <onboarding@resend.dev>"
 
 
 # ── Request / Response Models ────────────────────────────────────────────────
@@ -64,34 +65,28 @@ def build_email_html(candidate_name: str, role: str, interview_link: str) -> str
   <div class="container">
     <div class="header">
       <h1>🎉 You've Been Shortlisted!</h1>
-      <p>KizunaHire — Smart Hiring Platform</p>
+      <p>KizunaHire — Intelligent Candidate Matching</p>
     </div>
     <div class="body">
       <span class="badge">Interview Invitation</span>
       <h2>Hi {candidate_name},</h2>
-      <p>Congratulations! Your profile has been shortlisted for the <strong>{role}</strong> position.
-         Our AI has matched your skills with the job requirements and we'd love to learn more about you.</p>
-
+      <p>Congratulations! After reviewing your profile, you've been shortlisted for the
+         <strong>{role}</strong> position.</p>
+      <p>We'd like to invite you to complete a short AI-powered interview. It takes about
+         <strong>10–15 minutes</strong> and can be done anytime from your browser.</p>
       <div class="info-box">
-        <p>📌 <strong>Role:</strong> {role}</p>
-        <p>⏱ <strong>Duration:</strong> ~10 minutes</p>
-        <p>🤖 <strong>Format:</strong> AI-powered interview — answer at your own pace</p>
+        <p>📋 <strong>Role:</strong> {role}</p>
+        <p>⏱ <strong>Duration:</strong> ~10–15 minutes</p>
+        <p>💻 <strong>Format:</strong> AI-powered conversational interview</p>
         <p>📅 <strong>Deadline:</strong> 48 hours from receiving this email</p>
       </div>
-
-      <p>Click the button below to start your AI interview. It consists of a few technical and
-         behavioural questions tailored specifically to the <strong>{role}</strong> role.</p>
-
-      <a href="{interview_link}" class="cta">Start AI Interview →</a>
-
-      <p style="font-size:13px;color:#94a3b8;text-align:center;">
-        If the button doesn't work, copy this link:<br/>
-        <a href="{interview_link}" style="color:#6366f1;">{interview_link}</a>
+      <a href="{interview_link}" class="cta">Start Your Interview →</a>
+      <p style="font-size:12px;color:#94a3b8;text-align:center;">
+        Or copy this link: {interview_link}
       </p>
     </div>
     <div class="footer">
-      <p>© 2026 KizunaHire · You're receiving this because you applied for a position.<br/>
-         Built by <a href="https://www.linkedin.com/in/ajaykumar-8b2ab4258/" style="color:#6366f1;">Ajay Kumar</a></p>
+      <p>© 2026 KizunaHire · AI-powered recruitment platform</p>
     </div>
   </div>
 </body>
@@ -99,21 +94,26 @@ def build_email_html(candidate_name: str, role: str, interview_link: str) -> str
 """
 
 
-# ── Send a single email via Gmail SMTP ───────────────────────────────────────
-def send_gmail(to_email: str, to_name: str, subject: str, html_body: str, settings) -> bool:
+# ── Send a single email via Resend API ───────────────────────────────────────
+def send_via_resend(to_email: str, subject: str, html_body: str, api_key: str) -> bool:
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"KizunaHire <{settings.sender_email}>"
-        msg["To"] = to_email
-        msg.attach(MIMEText(html_body, "html"))
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(settings.sender_email, settings.sender_app_password)
-            server.sendmail(settings.sender_email, to_email, msg.as_string())
-
-        logger.info(f"✅ Email sent to {to_email}")
-        return True
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "from": FROM_ADDRESS,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+        }
+        resp = httpx.post(RESEND_API_URL, json=payload, headers=headers, timeout=15)
+        if resp.status_code in (200, 201):
+            logger.info(f"✅ Email sent to {to_email} via Resend")
+            return True
+        else:
+            logger.error(f"❌ Resend error for {to_email}: {resp.status_code} {resp.text}")
+            return False
     except Exception as e:
         logger.error(f"❌ Failed to send email to {to_email}: {e}")
         return False
@@ -124,25 +124,20 @@ def send_gmail(to_email: str, to_name: str, subject: str, html_body: str, settin
 async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(require_admin)):
     settings = get_settings()
 
-    if not settings.sender_email or not settings.sender_app_password:
+    if not settings.resend_api_key:
         raise HTTPException(
             status_code=503,
-            detail="Email not configured. Add SENDER_EMAIL and SENDER_APP_PASSWORD to .env"
-        )
-    if settings.sender_app_password == "your_gmail_app_password_here":
-        raise HTTPException(
-            status_code=503,
-            detail="Please set a real Gmail App Password in backend/.env"
+            detail="Email not configured. Add RESEND_API_KEY to environment variables."
         )
 
     sent, failed = [], []
 
     for candidate in request.candidates:
         interview_link = f"{request.interview_base_url}?email={candidate.email}&role={candidate.role}"
-        html = build_email_html(candidate.name, candidate.role, interview_link)
+        html    = build_email_html(candidate.name, candidate.role, interview_link)
         subject = f"🎉 You've been shortlisted for {candidate.role} — Start your AI Interview"
 
-        ok = send_gmail(candidate.email, candidate.name, subject, html, settings)
+        ok = send_via_resend(candidate.email, subject, html, settings.resend_api_key)
         if ok:
             sent.append(candidate.email)
         else:
@@ -155,6 +150,5 @@ async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(
 async def email_status():
     """Check if email is configured."""
     settings = get_settings()
-    configured = bool(settings.sender_email and settings.sender_app_password
-                      and settings.sender_app_password != "your_gmail_app_password_here")
-    return {"configured": configured, "sender": settings.sender_email if configured else None}
+    configured = bool(settings.resend_api_key)
+    return {"configured": configured, "provider": "Resend" if configured else None}
