@@ -16,10 +16,7 @@ class Settings(BaseSettings):
     admin_email: str = "admin@example.com"
     admin_password: str = "changeme"
     mongodb_uri: str = ""
-    sender_email: str = ""           # Gmail address (kept for reference)
-    sender_app_password: str = ""    # Gmail App Password (not used — replaced by Resend)
-    resend_api_key: str = ""         # kept for backwards compat
-    brevo_api_key: str = ""          # Brevo (Sendinblue) API key for email delivery
+    brevo_api_key: str = ""          # Brevo API key for email delivery
     jwt_secret: str = "kizunahire-change-this-in-production-2026"
     jwt_expire_hours: int = 24
     frontend_url: str = ""   # e.g. https://kizunahire.vercel.app
