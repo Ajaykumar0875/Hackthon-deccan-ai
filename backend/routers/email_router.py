@@ -1,4 +1,4 @@
-"""Email router — sends AI interview invitation emails via Resend API."""
+"""Email router — sends AI interview invitation emails via Brevo API."""
 import logging
 import httpx
 from typing import List
@@ -10,8 +10,9 @@ from config import get_settings
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-RESEND_API_URL = "https://api.resend.com/emails"
-FROM_ADDRESS   = "KizunaHire <onboarding@resend.dev>"
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
+FROM_EMAIL    = "ajay.grandhisila07@gmail.com"
+FROM_NAME     = "KizunaHire"
 
 
 # ── Request / Response Models ────────────────────────────────────────────────
@@ -94,25 +95,25 @@ def build_email_html(candidate_name: str, role: str, interview_link: str) -> str
 """
 
 
-# ── Send a single email via Resend API ───────────────────────────────────────
+# ── Send a single email via Brevo API ───────────────────────────────────────
 def send_via_resend(to_email: str, subject: str, html_body: str, api_key: str) -> bool:
     try:
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "api-key": api_key,
             "Content-Type": "application/json",
         }
         payload = {
-            "from": FROM_ADDRESS,
-            "to": [to_email],
+            "sender": {"name": FROM_NAME, "email": FROM_EMAIL},
+            "to": [{"email": to_email}],
             "subject": subject,
-            "html": html_body,
+            "htmlContent": html_body,
         }
-        resp = httpx.post(RESEND_API_URL, json=payload, headers=headers, timeout=15)
+        resp = httpx.post(BREVO_API_URL, json=payload, headers=headers, timeout=15)
         if resp.status_code in (200, 201):
-            logger.info(f"✅ Email sent to {to_email} via Resend")
+            logger.info(f"✅ Email sent to {to_email} via Brevo")
             return True
         else:
-            logger.error(f"❌ Resend error for {to_email}: {resp.status_code} {resp.text}")
+            logger.error(f"❌ Brevo error for {to_email}: {resp.status_code} {resp.text}")
             return False
     except Exception as e:
         logger.error(f"❌ Failed to send email to {to_email}: {e}")
@@ -124,10 +125,10 @@ def send_via_resend(to_email: str, subject: str, html_body: str, api_key: str) -
 async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(require_admin)):
     settings = get_settings()
 
-    if not settings.resend_api_key:
+    if not settings.brevo_api_key:
         raise HTTPException(
             status_code=503,
-            detail="Email not configured. Add RESEND_API_KEY to environment variables."
+            detail="Email not configured. Add BREVO_API_KEY to environment variables."
         )
 
     sent, failed = [], []
@@ -137,7 +138,7 @@ async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(
         html    = build_email_html(candidate.name, candidate.role, interview_link)
         subject = f"🎉 You've been shortlisted for {candidate.role} — Start your AI Interview"
 
-        ok = send_via_resend(candidate.email, subject, html, settings.resend_api_key)
+        ok = send_via_resend(candidate.email, subject, html, settings.brevo_api_key)
         if ok:
             sent.append(candidate.email)
         else:
@@ -150,5 +151,5 @@ async def send_interview_invites(request: SendInvitesRequest, _: dict = Depends(
 async def email_status():
     """Check if email is configured."""
     settings = get_settings()
-    configured = bool(settings.resend_api_key)
-    return {"configured": configured, "provider": "Resend" if configured else None}
+    configured = bool(settings.brevo_api_key)
+    return {"configured": configured, "provider": "Brevo" if configured else None}

@@ -170,7 +170,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     settings = get_settings()
     name     = user.get("name", "there")
     html     = _otp_email_html(name, otp)
-    ok       = send_via_resend(email, "🔐 Your KizunaHire Password Reset OTP", html, settings.resend_api_key)
+    ok       = send_via_resend(email, "🔐 Your KizunaHire Password Reset OTP", html, settings.brevo_api_key)
 
     if not ok:
         raise HTTPException(status_code=500, detail="Failed to send OTP email. Check RESEND_API_KEY config.")
