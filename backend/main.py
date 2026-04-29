@@ -65,13 +65,15 @@ _allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:3001",
+    "https://hackthon-deccan-ai.vercel.app",   # production frontend
 ]
-if settings.frontend_url:
+if settings.frontend_url and settings.frontend_url not in _allowed_origins:
     _allowed_origins.append(settings.frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # allow all vercel preview URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
